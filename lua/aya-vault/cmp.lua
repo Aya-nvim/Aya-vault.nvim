@@ -12,28 +12,31 @@ source.new = function()
     return setmetatable({}, { __index = source })
 end
 
-source.complete = function(self, request, callback)
+function source:get_trigger_characters()
+    return { "[" }
+end
+
+function source:get_keyword_pattern()
+    return [=[\%(\s\|^\|#\)\zs\[\{2}[^\]]\+\]\{,2}]=]
+end
+
+function source:complete(_, callback)
     local items = {}
-    local prefix = string.sub(request.context.cursor_before_line, 1, request.offset - 1)
 
     local files = index.get_aya_file(vim.fn.getcwd())
-    if vim.endswith(prefix, "[[") then
-        for _, file in ipairs(files) do
-            table.insert(items, {
-                filterText = "[[" .. file,
-                label = file,
-                kind = cmp.lsp.CompletionItemKind.File,
-            })
-        end
-        callback({
-            items = items,
-            isIncomplete = true,
-        })
-    else
-        callback({
-            isIncomplete = true,
+    print(vim.inspect(files))
+    for _, file in ipairs(files) do
+        table.insert(items, {
+            filterText = "[[" .. file,
+            label = file,
+            kind = cmp.lsp.CompletionItemKind.File,
         })
     end
+
+    callback({
+        items = items,
+        isIncomplete = true,
+    })
 end
 
 return {
